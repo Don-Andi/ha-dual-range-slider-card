@@ -1,0 +1,1 @@
+# ha-dual-range-slider-card
