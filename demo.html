@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Dual Range Slider Card – Preview</title>
+  <style>
+    :root {
+      --font: "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    }
+    * { box-sizing: border-box; }
+    html, body {
+      margin: 0;
+      padding: 0;
+      background: #e8eaed;
+      font-family: var(--font);
+      color: #202124;
+    }
+    .page {
+      width: 1280px;
+      min-height: 800px;
+      margin: 0 auto;
+      padding: 48px 56px 56px;
+      background:
+        radial-gradient(1200px 500px at 10% -10%, #d7e9ff 0%, transparent 55%),
+        radial-gradient(900px 400px at 100% 0%, #d8d0ff 0%, transparent 50%),
+        #e8eaed;
+    }
+    header {
+      margin-bottom: 28px;
+    }
+    .eyebrow {
+      font-size: 12px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: #5f6368;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+    h1 {
+      margin: 0 0 8px;
+      font-size: 32px;
+      font-weight: 650;
+      letter-spacing: -0.03em;
+    }
+    header p {
+      margin: 0;
+      color: #5f6368;
+      font-size: 16px;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+    }
+    .theme {
+      border-radius: 20px;
+      padding: 22px 22px 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .theme h2 {
+      margin: 0;
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+    .theme.light {
+      background: #f7f7f7;
+      color: #212121;
+      border: 1px solid #e0e0e0;
+      --primary-color: #03a9f4;
+      --accent-color: #ff9800;
+      --primary-text-color: #212121;
+      --secondary-text-color: #5f6368;
+      --divider-color: #e0e0e0;
+      --card-background-color: #ffffff;
+      --primary-background-color: #f7f7f7;
+      --secondary-background-color: #eeeeee;
+      --disabled-text-color: #bdbdbd;
+      --ha-card-border-radius: 12px;
+      --ha-card-border-width: 1px;
+      --ha-card-border-color: #e0e0e0;
+      --ha-card-box-shadow: 0 1px 2px rgba(0,0,0,0.06), 0 4px 12px rgba(0,0,0,0.04);
+      --error-color: #db4437;
+    }
+    .theme.light h2 { color: #5f6368; }
+    .theme.dark {
+      background: #111318;
+      color: #e1e1e1;
+      border: 1px solid #2a2e35;
+      --primary-color: #18bcf2;
+      --accent-color: #ffb74d;
+      --primary-text-color: #e8eaed;
+      --secondary-text-color: #9aa0a6;
+      --divider-color: #3c4043;
+      --card-background-color: #1c1e22;
+      --primary-background-color: #111318;
+      --secondary-background-color: #2a2e35;
+      --disabled-text-color: #6b6b6b;
+      --ha-card-border-radius: 12px;
+      --ha-card-border-width: 1px;
+      --ha-card-border-color: #3c4043;
+      --ha-card-box-shadow: none;
+      --error-color: #f28b82;
+    }
+    .theme.dark h2 { color: #9aa0a6; }
+    ha-card { display: block; }
+    dual-range-slider-card { display: block; }
+  </style>
+</head>
+<body>
+  <div class="page" id="preview">
+    <header>
+      <div class="eyebrow">Home Assistant · Lovelace</div>
+      <h1>Dual Range Slider Card</h1>
+      <p>Zero-dependency dual-handle range slider for <code>input_number</code> and <code>number</code> entities.</p>
+    </header>
+    <div class="grid">
+      <section class="theme light">
+        <h2>Light</h2>
+        <dual-range-slider-card id="light-battery"></dual-range-slider-card>
+        <dual-range-slider-card id="light-temp"></dual-range-slider-card>
+      </section>
+      <section class="theme dark">
+        <h2>Dark</h2>
+        <dual-range-slider-card id="dark-battery"></dual-range-slider-card>
+        <dual-range-slider-card id="dark-temp"></dual-range-slider-card>
+      </section>
+    </div>
+  </div>
+  <script src="dual-range-slider-card.js"></script>
+  <script>
+    if (!customElements.get("ha-card")) {
+      customElements.define("ha-card", class extends HTMLElement {});
+    }
+
+    function entity(state, attrs) {
+      return { state: String(state), attributes: attrs || {} };
+    }
+
+    function makeHass(kind) {
+      const battery = {
+        minId: "input_number.battery_reserve_min",
+        maxId: "input_number.battery_reserve_max",
+        curId: "sensor.battery_soc",
+        attrs: { min: 20, max: 100, step: 1, unit_of_measurement: "%" },
+      };
+      const temp = {
+        minId: "input_number.thermostat_min",
+        maxId: "input_number.thermostat_max",
+        curId: "sensor.living_room_temperature",
+        attrs: { min: 16, max: 28, step: 0.5, unit_of_measurement: "°C" },
+      };
+      const spec = kind === "battery" ? battery : temp;
+      const values = kind === "battery"
+        ? { min: 50, max: 70, current: 64 }
+        : { min: 19, max: 22, current: 20.5 };
+      const states = {};
+      states[spec.minId] = entity(values.min, Object.assign({ friendly_name: "Min" }, spec.attrs));
+      states[spec.maxId] = entity(values.max, Object.assign({ friendly_name: "Max" }, spec.attrs));
+      states[spec.curId] = entity(values.current, {
+        unit_of_measurement: spec.attrs.unit_of_measurement,
+        friendly_name: "Current",
+      });
+      return {
+        states: states,
+        locale: { language: "en" },
+        callService: function () {},
+      };
+    }
+
+    const batteryConfig = {
+      title: "Battery Reserve",
+      min_entity: "input_number.battery_reserve_min",
+      max_entity: "input_number.battery_reserve_max",
+      current_entity: "sensor.battery_soc",
+      current_label: "SoC",
+      min: 20,
+      max: 100,
+      step: 1,
+      min_gap: 5,
+      unit: "%",
+    };
+
+    const tempConfig = {
+      title: "Living Room Comfort",
+      min_entity: "input_number.thermostat_min",
+      max_entity: "input_number.thermostat_max",
+      current_entity: "sensor.living_room_temperature",
+      min_label: "Heat below",
+      max_label: "Cool above",
+      current_label: "Now",
+      min: 16,
+      max: 28,
+      step: 0.5,
+      min_gap: 1,
+      unit: "°C",
+    };
+
+    const mounts = [
+      ["light-battery", batteryConfig, "battery"],
+      ["light-temp", tempConfig, "temp"],
+      ["dark-battery", batteryConfig, "battery"],
+      ["dark-temp", tempConfig, "temp"],
+    ];
+
+    mounts.forEach(function (item) {
+      const el = document.getElementById(item[0]);
+      el.setConfig(item[1]);
+      el.hass = makeHass(item[2]);
+    });
+
+    requestAnimationFrame(function () {
+      document.body.setAttribute("data-ready", "1");
+    });
+  </script>
+</body>
+</html>
